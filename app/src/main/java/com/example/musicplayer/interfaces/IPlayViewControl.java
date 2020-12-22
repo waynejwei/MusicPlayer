@@ -16,4 +16,9 @@ public interface IPlayViewControl {
      * @param seek 进度
      */
     void onSeekChange(int seek);
+
+    /**
+     * 修改播放暂停键的状态,设置为播放
+     */
+    void onNextMusic();
 }

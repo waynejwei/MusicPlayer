@@ -28,7 +28,23 @@ public interface IPlayControl {
     /**
      * 播放/暂停音乐
      */
-    void playOrPause();
+    void playOrPause(String location);
+
+    /**
+     * 下一首音乐
+     */
+    void nextMusic();
+
+    /**
+     * 上一首音乐
+     */
+    void lastMusic();
+
+    /**
+     * 切换音乐
+     * @param location
+     */
+    void changeMusic(String location);
 
     /**
      * 停止播放
