@@ -26,6 +26,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.musicplayer.adapter.MusicAdapter;
+import com.example.musicplayer.custom.ScrollingTextView;
 import com.example.musicplayer.interfaces.IPlayControl;
 import com.example.musicplayer.interfaces.IPlayViewControl;
 import com.example.musicplayer.model.Music;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
     private Button nextButton;
     private Button lastButton;
     private ImageView startOrPause;
-    private TextView musicName;
+    private ScrollingTextView musicName;
     private RecyclerView recyclerView;
     private myServiceConnection connection;
     private boolean isBind;
@@ -253,7 +254,6 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 //点击开始播放或暂停
                 if (playControl != null) {
                     Log.d(TAG, "playOrPause...");
-                    //TODO:播放上次播放的音乐(记录上一次的播放历史)
                     String lastMusicLocation = mySharedPreferences.getString("lastMusicLocation", Music.BASIC_LOCATION + "song.mp3");
                     String lastName = mySharedPreferences.getString("lastMusicName", musicList.get(0).getName());
                     if (CURRENT_MUSIC != -1){
