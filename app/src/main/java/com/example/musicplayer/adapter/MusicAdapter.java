@@ -53,7 +53,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.innerHolder>
 
     /**
      * 从外部传数据进来
-     * @param music
+     * @param music 音乐
      */
     public void setData(List<Music> music){
         musicList.clear();
@@ -64,7 +64,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.innerHolder>
     /**
      * 加载布局
      */
-    public class innerHolder extends RecyclerView.ViewHolder {
+    public static class innerHolder extends RecyclerView.ViewHolder {
 
         public ImageView cover;
 

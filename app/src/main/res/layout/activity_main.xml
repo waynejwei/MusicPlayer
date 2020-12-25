@@ -87,32 +87,42 @@
         android:id="@+id/music_info"
         android:layout_width="0dp"
         android:layout_height="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/shape_of_music_info"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/seekBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerView"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:background="@drawable/shape_of_music_info">
+        app:layout_constraintTop_toBottomOf="@+id/recyclerView">
+
+        <ImageView
+            android:id="@+id/play_type"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/loop"
+            app:layout_constraintBottom_toBottomOf="@+id/music_info"
+            app:layout_constraintStart_toStartOf="@+id/music_info"
+            app:layout_constraintTop_toTopOf="@+id/music_info" />
 
         <com.example.musicplayer.custom.ScrollingTextView
             android:id="@+id/music_name_text"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:singleLine="true"
             android:ellipsize="marquee"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:textColor="@color/white"
-            android:text="世界美好与你环环相扣"
-            android:textSize="24dp"
             android:gravity="center"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:text="世界美好与你环环相扣"
+            android:textColor="@color/white"
+            android:textSize="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/start_or_pause_btn"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/play_type"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
@@ -129,5 +139,7 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

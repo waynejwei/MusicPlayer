@@ -27,7 +27,7 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
 
     /**
      * 获取界面UI管理
-     * @param playViewControl
+     * @param playViewControl 界面控制对象
      */
     @Override
     public void registerViewController(IPlayViewControl playViewControl) {
@@ -83,15 +83,6 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
         }
     }
 
-    @Override
-    public void nextMusic() {
-
-    }
-
-    @Override
-    public void lastMusic() {
-
-    }
 
     @Override
     public void changeMusic(String location) {
@@ -197,7 +188,7 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        //下一首歌
+        //下一首歌，TODO：或者单曲循环，或者随机播放
         if (playViewControl1 != null) {
             playViewControl1.onNextMusic();
         }

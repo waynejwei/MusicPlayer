@@ -16,7 +16,7 @@ public interface IPlayControl {
 
     /**
      * 把UI设置传递给逻辑层
-     * @param playViewControl
+     * @param playViewControl 界面管理对象
      */
     void registerViewController(IPlayViewControl playViewControl);
 
@@ -31,18 +31,8 @@ public interface IPlayControl {
     void playOrPause(String location);
 
     /**
-     * 下一首音乐
-     */
-    void nextMusic();
-
-    /**
-     * 上一首音乐
-     */
-    void lastMusic();
-
-    /**
      * 切换音乐
-     * @param location
+     * @param location 切换音乐的地址
      */
     void changeMusic(String location);
 
