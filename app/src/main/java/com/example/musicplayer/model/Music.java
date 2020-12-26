@@ -1,9 +1,11 @@
 package com.example.musicplayer.model;
 
+import java.io.Serializable;
+
 /**
  * 音乐实体类
  */
-public class Music {
+public class Music implements Serializable {
 
     private String name;
     private String location;

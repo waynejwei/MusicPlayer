@@ -1,8 +1,9 @@
-package com.example.musicplayer;
+package com.example.musicplayer.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +24,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
+import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.MusicAdapter;
 import com.example.musicplayer.custom.ScrollingTextView;
 import com.example.musicplayer.interfaces.IPlayControl;
@@ -52,26 +54,29 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
     private boolean isBind;
     private IPlayControl playControl;
     private MusicAdapter musicAdapter;
+    private ConstraintLayout musicInfo;
     private SharedPreferences mySharedPreferences;  //记录上一次播放的音乐
-    private static int CURRENT_MUSIC = -1;   //当前播放音乐的位置
-    private static int CURRENT_PLAYING_TYPE = 0;  //当前播放模式(0:循环，1:单曲循环，2:随机)
-
+    public static int CURRENT_MUSIC = 0;   //当前播放音乐的位置
+    public static int CURRENT_PLAYING_TYPE = 0;  //当前播放模式(0:循环，1:单曲循环，2:随机)
+    public static int CURRENT_SEEK = 0;  //当前播放的进度
     private static final String TAG = "MainActivity";
-    private static boolean SEEK_CHANGED_STATE = false;  //进度条是否在移动
+    public static boolean SEEK_CHANGED_STATE = false;  //进度条是否在移动
     private List<Music> musicList;
+    private static MainActivity mMainActivity = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mMainActivity = this;
 
         //加载数据
         loadData();
 
-        initView();
-
         //绑定音乐服务
         doBindPlayerService();
+
+        initView();
 
         initEvent();
 
@@ -83,6 +88,17 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
             //请求权限
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},PERMISSION_REQUEST_CODE);
         }
+    }
+
+    /**
+     * 外界获取MainActivity实例的方法
+     * @return MainActivity
+     */
+    public static MainActivity getInstance(){
+        if (mMainActivity != null) {
+            return mMainActivity;
+        }
+        return null;
     }
 
     /**
@@ -112,14 +128,23 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
      * 初始化控件
      * */
     private void initView() {
-        seekBar = findViewById(R.id.seekBar);
-        startOrPause = findViewById(R.id.start_or_pause_btn);
+        Log.d(TAG, "initView ...");
         mySharedPreferences = getSharedPreferences("last_music_player",MODE_PRIVATE);
+        seekBar = findViewById(R.id.seekBar);
+        //设置初始化的播放的位置
+        if (playControl != null) {
+            //TODO:如何设置进入回显，此处playControl为空
+            CURRENT_SEEK = mySharedPreferences.getInt("lastMusicSeek", 0);
+            seekBar.setProgress(CURRENT_SEEK);
+            playControl.seekTo(CURRENT_SEEK);
+        }
+        startOrPause = findViewById(R.id.start_or_pause_btn);
         musicName = findViewById(R.id.music_name_text);
         //设置初始化的音乐名称
         if (mySharedPreferences != null) {
             String lastName = mySharedPreferences.getString("lastMusicName", musicList.get(1).getName());
             musicName.setText(lastName);
+            CURRENT_MUSIC = mySharedPreferences.getInt("lastMusicPosition", 0);
         } else {
             musicName.setText(musicList.get(1).getName());
         }
@@ -127,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
         close = findViewById(R.id.close_btn);
         nextButton = findViewById(R.id.next_btn);
         lastButton = findViewById(R.id.last_btn);
+        musicInfo = findViewById(R.id.music_info);
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         musicAdapter = new MusicAdapter();
@@ -163,12 +189,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //松开进度条
-                SEEK_CHANGED_STATE = false;
-                int progress = seekBar.getProgress();
-                Log.d(TAG, "onStopTrackingTouch --> progress --> "+progress);
-                if (playControl != null) {
-                    playControl.seekTo(progress);
-                }
+                onStopSeekBar(seekBar);
             }
         });
 
@@ -181,12 +202,13 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                     String lastMusicLocation = mySharedPreferences.getString("lastMusicLocation", Music.BASIC_LOCATION + "song.mp3");
                     String lastName = mySharedPreferences.getString("lastMusicName", musicList.get(0).getName());
                     int lastMusicPosition = mySharedPreferences.getInt("lastMusicPosition", 0);
-                    if (CURRENT_MUSIC != -1){
+                    if (CURRENT_MUSIC != 0){
                         playControl.playOrPause(musicList.get(CURRENT_MUSIC).getLocation());
                     }else{
                         playControl.playOrPause(lastMusicLocation);
                         CURRENT_MUSIC = lastMusicPosition;
                     }
+                    saveInSharedPreferences(musicList.get(CURRENT_MUSIC));
                     musicName.setText(lastName);
                 }
             }
@@ -251,8 +273,35 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 }
             }
         });
+        musicInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //点击跳转到音乐详情
+                Intent intent = new Intent(MainActivity.this, MusicInfoActivity.class);
+                intent.putExtra("music", musicList.get(CURRENT_MUSIC));
+                intent.putExtra("musicSeek",CURRENT_SEEK);
+                int totalDuration = mySharedPreferences.getInt("totalDuration", 0);
+                intent.putExtra("totalDuration", totalDuration);
+                int currentDuration = mySharedPreferences.getInt("currentDuration", 0);
+                intent.putExtra("currentDuration", currentDuration);
+                startActivity(intent);
+            }
+        });
     }
 
+    /**
+     * 松开seekBar之后调整音乐进度
+     * @param seekBar
+     */
+    public void onStopSeekBar(SeekBar seekBar) {
+        SEEK_CHANGED_STATE = false;
+        int progress = seekBar.getProgress();
+        CURRENT_SEEK = progress;
+        Log.d(TAG, "onStopTrackingTouch --> progress --> "+progress);
+        if (playControl != null) {
+            playControl.seekTo(progress);
+        }
+    }
 
 
     /**
@@ -326,7 +375,8 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 break;
             case 2:
                 //随机播放
-                CURRENT_MUSIC = (int) (Math.random() * musicList.size());
+                int randomMusic = (int) (Math.random() * musicList.size());
+                CURRENT_MUSIC = (randomMusic != CURRENT_MUSIC) ? randomMusic : (CURRENT_MUSIC + 1) % musicList.size();
                 break;
             default:
                 break;
@@ -345,7 +395,8 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 break;
             case 2:
                 //随机播放
-                CURRENT_MUSIC = (int) (Math.random() * musicList.size());
+                int randomMusic = (int) (Math.random() * musicList.size());
+                CURRENT_MUSIC = (randomMusic != CURRENT_MUSIC) ? randomMusic : (CURRENT_MUSIC + 1) % musicList.size();
                 break;
             default:
                 break;
@@ -363,7 +414,8 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 break;
             case 2:
                 //随机播放
-                CURRENT_MUSIC = (int) (Math.random() * musicList.size());
+                int randomMusic = (int) (Math.random() * musicList.size());
+                CURRENT_MUSIC = (randomMusic != CURRENT_MUSIC) ? randomMusic : (CURRENT_MUSIC + 1) % musicList.size();
                 break;
             default:
                 break;
@@ -401,7 +453,12 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
         SharedPreferences.Editor editor = mySharedPreferences.edit();
         editor.putString("lastMusicLocation", music.getLocation());
         editor.putString("lastMusicName", music.getName());
-        editor.putInt("lastMusicPosition", musicList.indexOf(music));
+        editor.putInt("lastMusicPosition", musicList.indexOf(music));  //上一次的播放音乐的位置
+        editor.putInt("lastMusicSeek", CURRENT_SEEK);  //上一次的播放进度
+        if (playControl != null) {
+            editor.putInt("totalDuration", playControl.getTotalDuration());  //获取音乐总时长
+            editor.putInt("currentDuration", playControl.getCurrentDuration()); //当前播放时间
+        }
         editor.apply();
     }
 
@@ -477,6 +534,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                     //当进度条没有在移动的时候，设置进度条的值
                     if (!SEEK_CHANGED_STATE) {
                         seekBar.setProgress(seek);
+                        CURRENT_SEEK = seek;
                     }
                 }
             });
@@ -497,6 +555,16 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                     setMusicName();
                 }
             });
+        }
+
+        @Override
+        public int getCurrentMusic() {
+            return CURRENT_MUSIC;
+        }
+
+        @Override
+        public int getCurrentPlayType() {
+            return CURRENT_PLAYING_TYPE;
         }
     };
 }

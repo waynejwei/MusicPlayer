@@ -6,10 +6,14 @@ import android.os.Binder;
 import android.util.Log;
 
 
+import com.example.musicplayer.R;
+import com.example.musicplayer.interfaces.IMusicViewControl;
 import com.example.musicplayer.interfaces.IPlayControl;
 import com.example.musicplayer.interfaces.IPlayViewControl;
+import com.example.musicplayer.model.Music;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -19,11 +23,28 @@ import java.util.TimerTask;
 public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer.OnCompletionListener {
 
     private IPlayViewControl playViewControl1;   //控制UI
+    private IMusicViewControl musicViewControl1;
     private static final String TAG = "PlayerPresenter";
     private static int mCurrentPlayerState = PLAY_STATE_STOP;  //停止状态
     private MediaPlayer mediaPlayer;
     private Timer timer;
     private SeekTimerTask timerTask;
+    private ArrayList<Music> musicList = new ArrayList<Music>(){{
+            add(new Music("世间美好与你环环相扣", Music.BASIC_LOCATION+"song.mp3", R.drawable.song, "尹初七"));
+            add(new Music("打上花火", Music.BASIC_LOCATION+"song2.mp3", R.drawable.song2, "米津玄师"));
+            add(new Music("耗尽", Music.BASIC_LOCATION+"song3.mp3", R.drawable.song3, "薛之谦&郭聪明"));
+            add(new Music("踏山河", Music.BASIC_LOCATION+"song4.mp3", R.drawable.song4, "是七叔呢"));
+            add(new Music("夏天的风", Music.BASIC_LOCATION+"song5.mp3", R.drawable.song5,"温岚"));
+            add(new Music("冬眠", Music.BASIC_LOCATION+"song6.mp3", R.drawable.song6,"司南"));
+            add(new Music("大天蓬", Music.BASIC_LOCATION+"song7.mp3", R.drawable.song7,"李袁杰"));
+            add(new Music("吹梦到西洲", Music.BASIC_LOCATION+"song8.mp3", R.drawable.song8,"久书"));
+    }};
+    public static int CURRENT_MUSIC = 0;   //当前播放音乐的位置
+    public static int CURRENT_PLAYING_TYPE = 0;  //当前播放模式(0:循环，1:单曲循环，2:随机)
+    public static int CURRENT_SEEK = 0;  //当前播放的进度
+    private int currentPlayType;
+    private int currentMusic;
+
 
     /**
      * 获取界面UI管理
@@ -41,6 +62,20 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
     public void unRegisterViewController() {
         Log.d(TAG, "unRegisterViewController...");
         playViewControl1 = null;
+    }
+
+    @Override
+    public void registerMusicViewController(IMusicViewControl musicViewControl) {
+        Log.d(TAG, "registerMusicViewController...");
+        if (musicViewControl1 == null) {
+            musicViewControl1 = musicViewControl;
+        }
+    }
+
+    @Override
+    public void unRegisterMusicViewController() {
+        Log.d(TAG, "unRegisterMusicViewController...");
+        musicViewControl1 = null;
     }
 
     /**
@@ -158,6 +193,22 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
         }
     }
 
+    @Override
+    public int getTotalDuration() {
+        if (mediaPlayer != null){
+            return mediaPlayer.getDuration();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getCurrentDuration() {
+        if (mediaPlayer != null){
+            return mediaPlayer.getCurrentPosition();
+        }
+        return 0;
+    }
+
 
     /**
      * 打开时间管理器
@@ -188,10 +239,28 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        //下一首歌，TODO：或者单曲循环，或者随机播放
+        //下一首歌
         if (playViewControl1 != null) {
             playViewControl1.onNextMusic();
         }
+        if (musicViewControl1 != null){
+            Music music = getNextMusic();
+            Log.d(TAG, "next music is ——> "+music.toString());
+            musicViewControl1.onMusicInfoChanged(music);
+        }
+    }
+
+    /**
+     * 获取下一首音乐
+     * @return
+     */
+    private Music getNextMusic(){
+        if (playViewControl1 != null) {
+            currentPlayType = playViewControl1.getCurrentPlayType();
+            currentMusic = playViewControl1.getCurrentMusic();
+        }
+        Log.d(TAG, "music ——> "+currentMusic);
+        return musicList.get(currentMusic);
     }
 
     /**
@@ -207,7 +276,13 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
 //                Log.d(TAG, "seekTimerTask --> currentSeek --> "+currentPosition);
                 int curPosition = (int) (currentPosition*1.0f/mediaPlayer.getDuration()*100);
                 playViewControl1.onSeekChange(curPosition);   //修改进度条
+                if (musicViewControl1 != null){
+                    musicViewControl1.onSeekChange(curPosition);
+                    musicViewControl1.onCurrentTimeChange(currentPosition);
+                }
             }
         }
     }
+
+
 }

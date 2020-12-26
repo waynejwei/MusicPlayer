@@ -3,9 +3,9 @@ package com.example.musicplayer.interfaces;
 import com.example.musicplayer.model.Music;
 
 /**
- * 界面状态变化控制接口
+ * 音乐详情界面接口
  */
-public interface IPlayViewControl {
+public interface IMusicViewControl {
 
     /**
      * 播放按钮状态转变(播放/暂停)的通知
@@ -20,19 +20,20 @@ public interface IPlayViewControl {
     void onSeekChange(int seek);
 
     /**
+     * 当前进度时间变化通知
+     * @param duration 时间
+     */
+    void onCurrentTimeChange(int duration);
+
+    /**
      * 修改播放暂停键的状态,设置为播放
      */
     void onNextMusic();
 
     /**
-     * 获取当前播放的音乐
-     * @return
+     * 修改音乐信息
+     * @param music 音乐
      */
-    int getCurrentMusic();
+    void onMusicInfoChanged(Music music);
 
-    /**
-     * 获取当前播放模式
-     * @return
-     */
-    int getCurrentPlayType();
 }
