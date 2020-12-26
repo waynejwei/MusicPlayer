@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
     android:alpha="0.8"
+    android:background="@color/black"
     tools:context=".activity.MusicInfoActivity">
 
     <com.example.musicplayer.custom.RoundRectImageView
@@ -78,4 +78,44 @@
         app:layout_constraintStart_toStartOf="@+id/music_name"
         app:layout_constraintTop_toBottomOf="@+id/music_name" />
 
+    <ImageView
+        android:id="@+id/last_music_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:background="@drawable/last_music"
+        app:layout_constraintEnd_toStartOf="@+id/start_or_pause_btn"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/now_time" />
+
+    <ImageView
+        android:id="@+id/start_or_pause_btn"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/start_btn_white"
+        app:layout_constraintBottom_toBottomOf="@+id/last_music_btn"
+        app:layout_constraintEnd_toStartOf="@+id/next_music_btn"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/last_music_btn"
+        app:layout_constraintTop_toTopOf="@+id/last_music_btn" />
+
+    <ImageView
+        android:id="@+id/next_music_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/next_music"
+        app:layout_constraintBottom_toBottomOf="@+id/start_or_pause_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/start_or_pause_btn"
+        app:layout_constraintTop_toTopOf="@+id/start_or_pause_btn" />
+
+    <ImageView
+        android:id="@+id/loop_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/loop"
+        app:layout_constraintEnd_toEndOf="@+id/music_cover"
+        app:layout_constraintTop_toTopOf="@+id/music_name" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
     public static boolean SEEK_CHANGED_STATE = false;  //进度条是否在移动
     private List<Music> musicList;
     private static MainActivity mMainActivity = null;
+    private static int CURRENT_PLAYING_STATE = PLAY_STATE_PAUSE;   //当前播放状态
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
             seekBar.setProgress(CURRENT_SEEK);
             playControl.seekTo(CURRENT_SEEK);
         }
-        startOrPause = findViewById(R.id.start_or_pause_btn);
+        startOrPause = findViewById(R.id.start_or_pause);
         musicName = findViewById(R.id.music_name_text);
         //设置初始化的音乐名称
         if (mySharedPreferences != null) {
@@ -148,7 +149,10 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
         } else {
             musicName.setText(musicList.get(1).getName());
         }
+        //初始化选择状态
         playingType = findViewById(R.id.play_type);
+        CURRENT_PLAYING_TYPE = mySharedPreferences.getInt("currentPlayingType", 0);
+        setLoopButton();
         close = findViewById(R.id.close_btn);
         nextButton = findViewById(R.id.next_btn);
         lastButton = findViewById(R.id.last_btn);
@@ -199,17 +203,18 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 //点击开始播放或暂停
                 if (playControl != null) {
                     Log.d(TAG, "playOrPause...");
-                    String lastMusicLocation = mySharedPreferences.getString("lastMusicLocation", Music.BASIC_LOCATION + "song.mp3");
-                    String lastName = mySharedPreferences.getString("lastMusicName", musicList.get(0).getName());
-                    int lastMusicPosition = mySharedPreferences.getInt("lastMusicPosition", 0);
-                    if (CURRENT_MUSIC != 0){
-                        playControl.playOrPause(musicList.get(CURRENT_MUSIC).getLocation());
-                    }else{
-                        playControl.playOrPause(lastMusicLocation);
-                        CURRENT_MUSIC = lastMusicPosition;
-                    }
-                    saveInSharedPreferences(musicList.get(CURRENT_MUSIC));
-                    musicName.setText(lastName);
+//                    String lastMusicLocation = mySharedPreferences.getString("lastMusicLocation", Music.BASIC_LOCATION + "song.mp3");
+//                    String lastName = mySharedPreferences.getString("lastMusicName", musicList.get(0).getName());
+//                    int lastMusicPosition = mySharedPreferences.getInt("lastMusicPosition", 0);
+//                    if (CURRENT_MUSIC != 0){
+//                        playControl.playOrPause(musicList.get(CURRENT_MUSIC).getLocation());
+//                    }else{
+//                        playControl.playOrPause(lastMusicLocation);
+//                        CURRENT_MUSIC = lastMusicPosition;
+//                    }
+//                    saveInSharedPreferences(musicList.get(CURRENT_MUSIC));
+//                    musicName.setText(lastName);
+                    onStartOrPauseClicked();
                 }
             }
         });
@@ -228,49 +233,37 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getNextMusic();
-                Music music = musicList.get(CURRENT_MUSIC); //(CURRENT_MUSIC+1)%(musicList.size())
-                Log.d(TAG, "playing type is ——> "+CURRENT_PLAYING_TYPE);
-                Log.d(TAG, "next music is ——> "+music.toString());
-                playControl.changeMusic(music.getLocation());
-                startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
-//                CURRENT_MUSIC = (CURRENT_MUSIC+1)%(musicList.size());
-                saveInSharedPreferences(music);
-                setMusicName();
+//                getNextMusic();
+//                Music music = musicList.get(CURRENT_MUSIC); //(CURRENT_MUSIC+1)%(musicList.size())
+//                Log.d(TAG, "playing type is ——> "+CURRENT_PLAYING_TYPE);
+//                Log.d(TAG, "next music is ——> "+music.toString());
+//                playControl.changeMusic(music.getLocation());
+//                startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
+////                CURRENT_MUSIC = (CURRENT_MUSIC+1)%(musicList.size());
+//                saveInSharedPreferences(music);
+//                setMusicName();
+                playNextMusic();
             }
         });
         lastButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getLastMusic();
-                Music music = musicList.get(CURRENT_MUSIC);
-                Log.d(TAG, "last music is ——> "+music.toString());
-                playControl.changeMusic(music.getLocation());
-                startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
-//                CURRENT_MUSIC = (CURRENT_MUSIC-1+musicList.size())%(musicList.size());
-                saveInSharedPreferences(music);
-                setMusicName();
+//                getLastMusic();
+//                Music music = musicList.get(CURRENT_MUSIC);
+//                Log.d(TAG, "last music is ——> "+music.toString());
+//                playControl.changeMusic(music.getLocation());
+//                startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
+////                CURRENT_MUSIC = (CURRENT_MUSIC-1+musicList.size())%(musicList.size());
+//                saveInSharedPreferences(music);
+//                setMusicName();
+                playLastMusic();
             }
         });
 
         playingType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //点击一下，CURRENT_PLAYING_TYPE完后+1(循环)
-                CURRENT_PLAYING_TYPE = (CURRENT_PLAYING_TYPE + 1) % 3;
-                switch (CURRENT_PLAYING_TYPE){
-                    case 0:
-                        playingType.setBackgroundResource(R.drawable.loop);
-                        break;
-                    case 1:
-                        playingType.setBackgroundResource(R.drawable.single_loop);
-                        break;
-                    case 2:
-                        playingType.setBackgroundResource(R.drawable.random);
-                        break;
-                    default:
-                        break;
-                }
+                onLoopButtonClicked();
             }
         });
         musicInfo.setOnClickListener(new View.OnClickListener() {
@@ -284,9 +277,87 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
                 intent.putExtra("totalDuration", totalDuration);
                 int currentDuration = mySharedPreferences.getInt("currentDuration", 0);
                 intent.putExtra("currentDuration", currentDuration);
+                intent.putExtra("currentPlayingState", CURRENT_PLAYING_STATE);
+                intent.putExtra("currentPlayingType", CURRENT_PLAYING_TYPE);
                 startActivity(intent);
             }
         });
+    }
+
+    /**
+     * 点击播放模式的按钮时
+     */
+    public void onLoopButtonClicked() {
+        //点击一下，CURRENT_PLAYING_TYPE完后+1(循环)
+        CURRENT_PLAYING_TYPE = (CURRENT_PLAYING_TYPE + 1) % 3;
+        setLoopButton();
+    }
+
+    /**
+     * 设置播放模式按钮
+     */
+    private void setLoopButton(){
+        switch (CURRENT_PLAYING_TYPE){
+            case 0:
+                playingType.setBackgroundResource(R.drawable.loop);
+                break;
+            case 1:
+                playingType.setBackgroundResource(R.drawable.single_loop);
+                break;
+            case 2:
+                playingType.setBackgroundResource(R.drawable.random);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 播放上一首音乐
+     */
+    public Music playLastMusic() {
+        getLastMusic();
+        Music music = musicList.get(CURRENT_MUSIC);
+        Log.d(TAG, "last music is ——> "+music.toString());
+        playControl.changeMusic(music.getLocation());
+        startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
+//                CURRENT_MUSIC = (CURRENT_MUSIC-1+musicList.size())%(musicList.size());
+        saveInSharedPreferences(music);
+        setMusicName();
+        return music;
+    }
+
+    /**
+     * 播放下一首音乐
+     */
+    public Music playNextMusic() {
+        getNextMusic();
+        Music music = musicList.get(CURRENT_MUSIC); //(CURRENT_MUSIC+1)%(musicList.size())
+        Log.d(TAG, "playing type is ——> "+CURRENT_PLAYING_TYPE);
+        Log.d(TAG, "next music is ——> "+music.toString());
+        playControl.changeMusic(music.getLocation());
+        startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
+//                CURRENT_MUSIC = (CURRENT_MUSIC+1)%(musicList.size());
+        saveInSharedPreferences(music);
+        setMusicName();
+        return music;
+    }
+
+    /**
+     * 点击开始或结束按钮后改变view、控制音乐播放、记录音乐
+     */
+    public void onStartOrPauseClicked() {
+        String lastMusicLocation = mySharedPreferences.getString("lastMusicLocation", Music.BASIC_LOCATION + "song.mp3");
+        String lastName = mySharedPreferences.getString("lastMusicName", musicList.get(0).getName());
+        int lastMusicPosition = mySharedPreferences.getInt("lastMusicPosition", 0);
+        if (CURRENT_MUSIC != 0){
+            playControl.playOrPause(musicList.get(CURRENT_MUSIC).getLocation());
+        }else{
+            playControl.playOrPause(lastMusicLocation);
+            CURRENT_MUSIC = lastMusicPosition;
+        }
+        saveInSharedPreferences(musicList.get(CURRENT_MUSIC));
+        musicName.setText(lastName);
     }
 
     /**
@@ -459,6 +530,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
             editor.putInt("totalDuration", playControl.getTotalDuration());  //获取音乐总时长
             editor.putInt("currentDuration", playControl.getCurrentDuration()); //当前播放时间
         }
+        editor.putInt("currentPlayingType", CURRENT_PLAYING_TYPE);
         editor.apply();
     }
 
@@ -511,6 +583,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
     private IPlayViewControl mIPlayViewControl = new IPlayViewControl() {
         @Override
         public void onPlayerStateChange(int state) {
+            CURRENT_PLAYING_STATE = state;
             //播放状态改变
             switch(state){
                 case PLAY_STATE_PLAY:

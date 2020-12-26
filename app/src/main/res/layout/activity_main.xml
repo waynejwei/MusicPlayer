@@ -121,12 +121,12 @@
             android:textColor="@color/white"
             android:textSize="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/start_or_pause_btn"
+            app:layout_constraintEnd_toStartOf="@+id/start_or_pause"
             app:layout_constraintStart_toEndOf="@+id/play_type"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/start_or_pause_btn"
+            android:id="@+id/start_or_pause"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center"

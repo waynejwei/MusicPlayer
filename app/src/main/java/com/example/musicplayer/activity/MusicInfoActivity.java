@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -22,9 +23,11 @@ import com.example.musicplayer.interfaces.IPlayControl;
 import com.example.musicplayer.model.Music;
 import com.example.musicplayer.services.PlayerService;
 
-import static com.example.musicplayer.activity.MainActivity.CURRENT_MUSIC;
 import static com.example.musicplayer.activity.MainActivity.CURRENT_PLAYING_TYPE;
 import static com.example.musicplayer.custom.RoundRectImageView.getRoundBitmapByShader;
+import static com.example.musicplayer.interfaces.IPlayControl.PLAY_STATE_PAUSE;
+import static com.example.musicplayer.interfaces.IPlayControl.PLAY_STATE_PLAY;
+import static com.example.musicplayer.interfaces.IPlayControl.PLAY_STATE_STOP;
 
 /**
  * 音乐详情
@@ -38,6 +41,10 @@ public class MusicInfoActivity extends AppCompatActivity {
     private TextView nowTime;
     private TextView totalTime;
     private SeekBar seekBar;
+    private ImageView lastButton;
+    private ImageView startOrPauseButton;
+    private ImageView nextButton;
+    private ImageView loopButton;
     private Music music;
     private IPlayControl playControl;
     private static boolean SEEK_CHANGED_STATE = false;  //进度条是否在移动
@@ -47,6 +54,8 @@ public class MusicInfoActivity extends AppCompatActivity {
     private myServiceConnection connection;
     private boolean isBind;
     private int currentDuration;
+    private int currentPlayingState;
+    private int currentPlayingType;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -61,6 +70,9 @@ public class MusicInfoActivity extends AppCompatActivity {
         musicSeek = intent.getIntExtra("musicSeek", 0);
         totalDuration = intent.getIntExtra("totalDuration", 0);
         currentDuration = intent.getIntExtra("currentDuration", 0);
+        currentPlayingState = intent.getIntExtra("currentPlayingState", PLAY_STATE_PAUSE);
+        currentPlayingType = intent.getIntExtra("currentPlayingType", 0);
+        Log.d(TAG, "currentPlayingState is ——> " + currentPlayingState);
         //绑定音乐服务
         doBindPlayerService();
 
@@ -83,6 +95,10 @@ public class MusicInfoActivity extends AppCompatActivity {
         totalTime = findViewById(R.id.total_time);
         seekBar = findViewById(R.id.music_seek);
         seekBar.setProgress(musicSeek);
+        lastButton = findViewById(R.id.last_music_btn);
+        startOrPauseButton = findViewById(R.id.start_or_pause_btn);
+        nextButton = findViewById(R.id.next_music_btn);
+        loopButton = findViewById(R.id.loop_btn);
     }
 
     /**
@@ -97,8 +113,37 @@ public class MusicInfoActivity extends AppCompatActivity {
         musicName.setText(music.getName());
         musicAuthor.setText(music.getAuthor());
         nowTime.setText(timeParse(currentDuration));
+        if (playControl != null) {
+            totalDuration = playControl.getTotalDuration();
+        }
         totalTime.setText(timeParse(totalDuration));
         seekBar.setProgress(musicSeek);
+        //开始和结束按键
+        if (currentPlayingState == PLAY_STATE_PAUSE || currentPlayingState == PLAY_STATE_STOP){
+            startOrPauseButton.setBackgroundResource(R.drawable.start_btn_white);
+        } else {
+            startOrPauseButton.setBackgroundResource(R.drawable.stop_btn_white);
+        }
+        setLoopButton();
+    }
+
+    /**
+     * 设置播放模式按钮
+     */
+    private void setLoopButton(){
+        switch (currentPlayingType){
+            case 0:
+                loopButton.setBackgroundResource(R.drawable.loop);
+                break;
+            case 1:
+                loopButton.setBackgroundResource(R.drawable.single_loop);
+                break;
+            case 2:
+                loopButton.setBackgroundResource(R.drawable.random);
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -126,6 +171,39 @@ public class MusicInfoActivity extends AppCompatActivity {
                     nowTime.setText(timeParse(currentDuration));
                 }
                 SEEK_CHANGED_STATE = false;
+            }
+        });
+        startOrPauseButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View v) {
+                mMainActivity.onStartOrPauseClicked();  //调用MainActivity中的方法
+            }
+        });
+        lastButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View v) {
+                //下一首
+                Music music = mMainActivity.playLastMusic();
+                setView(music);
+            }
+        });
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View v) {
+                Music music = mMainActivity.playNextMusic();
+                setView(music);
+            }
+        });
+        loopButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View v) {
+                mMainActivity.onLoopButtonClicked();
+                currentPlayingType = (currentPlayingType + 1) % 3;
+                setLoopButton();
             }
         });
     }
@@ -168,7 +246,19 @@ public class MusicInfoActivity extends AppCompatActivity {
 
         @Override
         public void onPlayerStateChange(int state) {
-
+            //播放状态改变
+            Log.d(TAG, "current state is ——> " + state);
+            switch(state){
+                case PLAY_STATE_PLAY:
+                    startOrPauseButton.setBackgroundResource(R.drawable.stop_btn_white);
+                    break;
+                case PLAY_STATE_PAUSE:
+                case PLAY_STATE_STOP:
+                    startOrPauseButton.setBackgroundResource(R.drawable.start_btn_white);
+                    break;
+                default:
+                    break;
+            }
         }
 
         @Override

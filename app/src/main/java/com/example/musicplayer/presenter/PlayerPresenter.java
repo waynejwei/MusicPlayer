@@ -116,6 +116,9 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
         if (playViewControl1 != null) {
             playViewControl1.onPlayerStateChange(mCurrentPlayerState);
         }
+        if (musicViewControl1 != null) {
+            musicViewControl1.onPlayerStateChange(mCurrentPlayerState);
+        }
     }
 
 
