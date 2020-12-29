@@ -142,7 +142,7 @@ public class PlayerPresenter extends Binder implements IPlayControl, MediaPlayer
             //当前正在播放其它音乐的时候，则释放音乐资源，然后播放
             mediaPlayer.reset();
             try{
-                //TODO:切换太频繁(才开始就切换)会出问题
+                //TODO:切换太频繁会出问题，卡顿(或直接闪退)
                 mediaPlayer.setDataSource(location);
                 mediaPlayer.prepare();
                 mediaPlayer.start();

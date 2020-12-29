@@ -39,14 +39,17 @@ import static com.example.musicplayer.interfaces.IPlayControl.PLAY_STATE_PAUSE;
 import static com.example.musicplayer.interfaces.IPlayControl.PLAY_STATE_PLAY;
 import static com.example.musicplayer.interfaces.IPlayControl.PLAY_STATE_STOP;
 
+/*
+* 待完成：
+* 上一次播放的进度条(回显)
+* 去掉主活动中的进度条和播放type
+* 将代码整理到对应的活动上，尽量不要跨活动调用
+* */
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class MainActivity extends AppCompatActivity implements MusicAdapter.onListenItemClickListen {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private SeekBar seekBar;
-    private Button close;
-    private Button nextButton;
-    private Button lastButton;
     private ImageView startOrPause;
     private ImageView playingType;   //播放的模式
     private ScrollingTextView musicName;
@@ -153,9 +156,6 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
         playingType = findViewById(R.id.play_type);
         CURRENT_PLAYING_TYPE = mySharedPreferences.getInt("currentPlayingType", 0);
         setLoopButton();
-        close = findViewById(R.id.close_btn);
-        nextButton = findViewById(R.id.next_btn);
-        lastButton = findViewById(R.id.last_btn);
         musicInfo = findViewById(R.id.music_info);
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -219,46 +219,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.onLi
             }
         });
 
-        close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //关闭播放
-                if (playControl != null) {
-                    Log.d(TAG, "stopPlay...");
-                    playControl.stopPlay();
-                }
-            }
-        });
         musicAdapter.setOnListenItemClickListen(this);
-        nextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                getNextMusic();
-//                Music music = musicList.get(CURRENT_MUSIC); //(CURRENT_MUSIC+1)%(musicList.size())
-//                Log.d(TAG, "playing type is ——> "+CURRENT_PLAYING_TYPE);
-//                Log.d(TAG, "next music is ——> "+music.toString());
-//                playControl.changeMusic(music.getLocation());
-//                startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
-////                CURRENT_MUSIC = (CURRENT_MUSIC+1)%(musicList.size());
-//                saveInSharedPreferences(music);
-//                setMusicName();
-                playNextMusic();
-            }
-        });
-        lastButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                getLastMusic();
-//                Music music = musicList.get(CURRENT_MUSIC);
-//                Log.d(TAG, "last music is ——> "+music.toString());
-//                playControl.changeMusic(music.getLocation());
-//                startOrPause.setBackgroundResource(R.drawable.stop_btn_white);
-////                CURRENT_MUSIC = (CURRENT_MUSIC-1+musicList.size())%(musicList.size());
-//                saveInSharedPreferences(music);
-//                setMusicName();
-                playLastMusic();
-            }
-        });
 
         playingType.setOnClickListener(new View.OnClickListener() {
             @Override
